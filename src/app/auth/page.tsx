@@ -40,16 +40,26 @@ function AuthContent() {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) {
-          setErrorMsg(error.message.includes('Invalid login credentials') 
-            ? 'Email atau kata sandi tidak cocok. Silakan periksa kembali atau daftar baru.' 
-            : error.message);
+          const lower = error.message.toLowerCase();
+          if (lower.includes('email not confirmed')) {
+            setErrorMsg('Email belum dikonfirmasi! Silakan periksa inbox/spam email Anda untuk link konfirmasi, atau matikan opsi "Confirm email" di pengaturan Supabase.');
+          } else if (lower.includes('invalid login credentials')) {
+            setErrorMsg('Email atau kata sandi tidak cocok. Jika baru mendaftar, pastikan email sudah dikonfirmasi (atau matikan Confirm email di Supabase).');
+          } else {
+            setErrorMsg(error.message);
+          }
         } else {
           router.push(redirectPath);
         }
       } else {
-        const { error } = await signUp(email, password);
+        const { error, session, user } = await signUp(email, password);
         if (error) {
           setErrorMsg(error.message);
+        } else if (user && (!user.identities || user.identities.length === 0)) {
+          setErrorMsg('Email ini sudah terdaftar sebelumnya. Silakan beralih ke tab Masuk (Login) atau gunakan kata sandi yang sesuai.');
+        } else if (!session) {
+          // Supabase mewajibkan email confirmation
+          setSuccessMsg('Pendaftaran berhasil! Email konfirmasi telah dikirim. Mohon buka email Anda dan klik tautan verifikasi sebelum masuk (atau matikan "Confirm email" di dashboard Supabase untuk testing).');
         } else {
           setSuccessMsg('Pendaftaran berhasil! Mengalihkan ke dashboard...');
           setTimeout(() => {
@@ -66,15 +76,15 @@ function AuthContent() {
 
   return (
     <div className="mx-auto my-12 max-w-md px-4 sm:px-6">
-      <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-emerald-950/10 bg-white shadow-[0_24px_80px_-44px_rgba(6,78,59,.35)]">
         {/* Header Tab */}
-        <div className="bg-gradient-to-b from-emerald-50/80 to-white p-6 pb-4 text-center">
+        <div className="bg-[#f3f6ee] p-6 pb-4 text-center">
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-900 text-lime-200 shadow-xs">
               <HeartPulse className="h-5 w-5" />
             </div>
-            <span className="text-xl font-bold text-slate-800">
-              Tenang<span className="text-emerald-600">Cek</span>
+            <span className="text-xl font-bold text-emerald-950">
+              TenangCek
             </span>
           </Link>
           <h1 className="text-base font-bold text-slate-800">

@@ -11,7 +11,11 @@ interface AuthContextType {
   profile: UserProfile | null;
   isLoading: boolean;
   signIn: (email: string, pass: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, pass: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, pass: string) => Promise<{ 
+    error: Error | null;
+    session?: Session | null;
+    user?: User | null;
+  }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -22,7 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   isLoading: true,
   signIn: async () => ({ error: null }),
-  signUp: async () => ({ error: null }),
+  signUp: async () => ({ error: null, session: null, user: null }),
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -98,10 +102,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password: pass,
       });
 
-      if (error) return { error: new Error(error.message) };
+      if (error) return { error: new Error(error.message), session: null, user: null };
 
-      // Optional: Initialize profile in table if user created
-      if (data.user) {
+      // Optional: Initialize profile in table if user created & session exists
+      if (data.user && data.session) {
         try {
           await supabase.from('profiles').insert([
             {
@@ -116,9 +120,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      return { error: null };
+      return { error: null, session: data.session, user: data.user };
     } catch (err) {
-      return { error: err instanceof Error ? err : new Error('Gagal mendaftar') };
+      return { 
+        error: err instanceof Error ? err : new Error('Gagal mendaftar'),
+        session: null,
+        user: null
+      };
     }
   };
 

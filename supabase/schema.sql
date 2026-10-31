@@ -86,3 +86,12 @@ CREATE POLICY "Users can manage own diary"
   FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+-- API privileges are still required before RLS policies can be evaluated.
+GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE
+  public.profiles,
+  public.checkins,
+  public.symptom_sessions,
+  public.diary_entries
+TO authenticated;

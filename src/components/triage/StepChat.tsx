@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { SymptomPayload, TriageResult } from '@/types/triage';
-import { Send, ArrowRight, ArrowLeft, Loader2, Sparkles, AlertCircle, LayoutDashboard } from 'lucide-react';
+import { Send, ArrowRight, ArrowLeft, Loader2, Sparkles, AlertCircle, LayoutDashboard, HeartPulse } from 'lucide-react';
 import AnxietySlider from './AnxietySlider';
 import RedFlagAlert from './RedFlagAlert';
 import TriageResultCard from './TriageResultCard';
 import BreathingExercise from '../calm/BreathingExercise';
+import InteractiveAiChat from './InteractiveAiChat';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface StepQuestion {
@@ -146,24 +147,22 @@ export default function StepChat() {
 
       setResult(json.data);
 
-      // Simpan ke riwayat sesi pengguna untuk ditampilkan di Dashboard
-      if (user?.id) {
-        try {
-          const cacheKey = `tenangcek_sessions_${user.id}`;
-          const existing = JSON.parse(localStorage.getItem(cacheKey) || '[]');
-          const newHistoryItem = {
-            id: `session-${Date.now()}`,
-            symptomName: payload.mainSymptom,
-            duration: payload.duration || 'Beberapa saat',
-            urgencyLevel: json.data.urgencyLevel,
-            reasoning: json.data.reasoning,
-            createdAt: new Date().toISOString(),
-            doctorSummary: json.data.doctorSummary,
-          };
-          localStorage.setItem(cacheKey, JSON.stringify([newHistoryItem, ...existing]));
-        } catch (err) {
-          console.warn('Gagal menyimpan sesi ke riwayat lokal:', err);
-        }
+      // Simpan ke riwayat sesi pengguna untuk ditampilkan di Dashboard (mendukung Mode Tamu)
+      try {
+        const cacheKey = `tenangcek_sessions_${user?.id || 'guest'}`;
+        const existing = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+        const newHistoryItem = {
+          id: `session-${Date.now()}`,
+          symptomName: payload.mainSymptom,
+          duration: payload.duration || 'Beberapa saat',
+          urgencyLevel: json.data.urgencyLevel,
+          reasoning: json.data.reasoning,
+          createdAt: new Date().toISOString(),
+          doctorSummary: json.data.doctorSummary,
+        };
+        localStorage.setItem(cacheKey, JSON.stringify([newHistoryItem, ...existing]));
+      } catch (err) {
+        console.warn('Gagal menyimpan sesi ke riwayat lokal:', err);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Terjadi gangguan jaringan';
@@ -186,46 +185,58 @@ export default function StepChat() {
     setTextInput('');
   };
 
+  // Jika hasil triase sudah siap, langsung tampilkan Ruang Chat Interaktif Full-Layout
+  if (result) {
+    return (
+      <div className="h-full w-full overflow-hidden">
+        <InteractiveAiChat
+          result={result}
+          formData={formData}
+          onReset={handleReset}
+        />
+      </div>
+    );
+  }
+
+  // Tampilan Onboarding Triase Bertahap (Step 1 s/d 5)
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      {/* Tampilan Hasil Triage Bila Sudah Selesai */}
-      {result ? (
-        <div className="space-y-6">
-          {result.isRedFlagTriggered ? (
-            <RedFlagAlert
-              reason={result.reasoning}
-              actionText={result.nextSteps?.[0] || 'Segera ke IGD terdekat atau hubungi 119'}
-            />
-          ) : (
-            <TriageResultCard result={result} />
-          )}
-
-          {/* Latihan Napas bila user cemas atau direkomendasikan */}
-          {((formData.anxietyBefore && formData.anxietyBefore >= 3) || result.calmSupport?.suggestBreathingExercise) && (
-            <BreathingExercise />
-          )}
-
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 transition"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              <span>Kembali ke Dashboard Saya</span>
-            </Link>
-
-            <button
-              type="button"
-              onClick={handleReset}
-              className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs"
-            >
-              Cek Gejala Baru
-            </button>
-          </div>
+    <div className="flex flex-col min-h-screen bg-slate-50">
+      {/* Mini Navbar untuk halaman onboarding */}
+      <header className="sticky top-0 z-40 w-full border-b border-emerald-100 bg-white/90 backdrop-blur-md shrink-0">
+        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+          <Link href="/dashboard" className="flex items-center gap-2 transition hover:opacity-80">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-xs">
+              <HeartPulse className="h-4 w-4" />
+            </div>
+            <span className="font-bold text-slate-800 text-sm">Tenang<span className="text-emerald-600">Cek</span></span>
+          </Link>
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 transition"
+          >
+            <LayoutDashboard className="h-4 w-4 text-emerald-600" />
+            Dashboard
+          </Link>
         </div>
-      ) : (
-        /* Alur Pertanyaan Bertahap (Step by Step Chat) */
-        <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
+      </header>
+
+      <div className="flex-1 flex items-start justify-center px-4 py-8">
+      <div className="w-full max-w-2xl space-y-6">
+      {/* Header Pengantar Gejala */}
+      <div className="text-center">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 mb-2">
+          <HeartPulse className="h-3.5 w-3.5 text-emerald-600" />
+          <span>Symptom Check-in Awal</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800">
+          Cek Keluhan Kesehatan Anda
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">
+          Jawab pertanyaan sederhana satu per satu. Sistem akan menilai tingkat urgensi dan langsung menghubungkan Anda ke ruang konsultasi AI.
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
           {/* Progress bar */}
           <div className="mb-6">
             <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
@@ -348,7 +359,8 @@ export default function StepChat() {
             </button>
           </div>
         </div>
-      )}
+      </div>
+      </div>
     </div>
-  );
-}
+    );
+  }

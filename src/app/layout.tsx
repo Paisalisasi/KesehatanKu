@@ -1,13 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Navbar from '@/components/layout/Navbar';
-import DisclaimerBanner from '@/components/layout/DisclaimerBanner';
-import Footer from '@/components/layout/Footer';
+import ShellLayout from '@/components/layout/ShellLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
-  title: 'TenangCek - AI Health Triage Companion',
-  description: 'Bantu putuskan langkah berikutnya dengan tenang, bukan menebak penyakit. AI Health Triage Companion untuk IMK.',
+  title: 'TenangCek — Pahami keluhan, tentukan langkah',
+  description: 'Panduan awal untuk memahami urgensi keluhan kesehatan dan langkah berikutnya. Bukan pengganti diagnosis tenaga medis.',
 };
 
 export default function RootLayout({
@@ -17,12 +15,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className="flex min-h-screen flex-col bg-slate-50 antialiased selection:bg-emerald-100 selection:text-emerald-900">
+      <body className="flex min-h-screen flex-col bg-[#f7f8f3] antialiased selection:bg-lime-200 selection:text-emerald-950">
         <AuthProvider>
-          <DisclaimerBanner />
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <ShellLayout>
+            {children}
+          </ShellLayout>
         </AuthProvider>
       </body>
     </html>

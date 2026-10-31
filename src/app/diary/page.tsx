@@ -1,38 +1,30 @@
-import React from 'react';
+import Link from 'next/link';
 import DiaryList from '@/components/diary/DiaryList';
-import { BookHeart, Info } from 'lucide-react';
+import { ArrowLeft, BookHeart, Info } from 'lucide-react';
 import AuthGuard from '@/components/auth/AuthGuard';
 
 export const metadata = {
-  title: 'Symptom Diary • TenangCek',
-  description: 'Pantau perkembangan dan perubahan gejala Anda dari hari ke hari.',
+  title: 'Diary Gejala • TenangCek',
+  description: 'Catat perubahan gejala dan siapkan ringkasan untuk konsultasi.',
 };
 
 export default function DiaryPage() {
   return (
     <AuthGuard>
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 mb-2">
-            <BookHeart className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Pantau Perkembangan</span>
+      <div className="min-h-[70vh] bg-[#f7f8f3]">
+        <div className="mx-auto max-w-4xl px-5 py-8 sm:px-8 sm:py-12">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-emerald-900"><ArrowLeft className="h-4 w-4" /> Kembali ke dashboard</Link>
+          <div className="mb-7 mt-7 max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-950/10 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800"><BookHeart className="h-3.5 w-3.5" /> Ruang catatanmu</div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-[-.04em] text-emerald-950 sm:text-4xl">Pantau perubahan, pelan-pelan.</h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600 sm:text-base">Catat apa yang kamu rasakan hari ini. Perubahan kecil bisa membantu kamu menjelaskan kondisi saat berkonsultasi.</p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800">
-            Symptom Diary Pribadi
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">
-            Catat sensasi tubuh harian Anda. Jika gejala tidak membaik lebih dari 3 hari, sistem akan merekomendasikan periksa ke dokter.
-          </p>
+          <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200/80 bg-[#fff8e8] p-4 text-sm text-amber-950">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+            <p className="leading-6"><strong>Catatan:</strong> Diary ini membantu merangkum perubahan, bukan menentukan diagnosis. Kalau gejala terasa berat, memburuk, atau membuatmu khawatir, hubungi tenaga medis.</p>
+          </div>
+          <DiaryList />
         </div>
-
-        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50/70 p-4 text-xs text-blue-900 flex items-start gap-2.5">
-          <Info className="h-4 w-4 shrink-0 text-blue-600 mt-0.5" />
-          <p>
-            <strong>Tips Evaluasi:</strong> Jika Anda mencatat gejala berturut-turut dengan tingkat keparahan yang sama atau meningkat (skala 3 ke atas selama lebih dari 3 hari), segera jadwalkan konsultasi dokter umum di faskes primer terdekat.
-          </p>
-        </div>
-
-        <DiaryList />
       </div>
     </AuthGuard>
   );
