@@ -1,4 +1,4 @@
-# TenangCek 🌿 — AI Health Triage Companion
+Medivue 🌿 — AI Health Triage Companion
 
 > **"Bantu user memutuskan langkah berikutnya dengan tenang, bukan menebak penyakit."**  
 > Proyek Interaksi Manusia dan Komputer (IMK) — Solusi untuk mengatasi kecemasan akibat *self-diagnosis* di internet (*cyberchondria*).
